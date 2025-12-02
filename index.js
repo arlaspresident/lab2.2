@@ -1,5 +1,6 @@
 import Hapi from '@hapi/hapi';
 import db from "./database.js";
+import registerWorkoutRoutes from "./routes/workoutsRoutes.js";
 
 
 const init = async () => {
