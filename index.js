@@ -1,19 +1,16 @@
 import Hapi from '@hapi/hapi';
 import db from './database.js';
 import registerWorkoutRoutes from './routes/workoutsRoutes.js';
-import cors from '@hapi/cors';
 
 const init = async () => {
   const server = Hapi.server({
-    port: process.env.PORT || 3000,   
-    host: '0.0.0.0',                 
-  });
-
-  await server.register({
-    plugin: cors,
-    options: {
-      origins: ['*'],
-    },
+    port: 3000,
+    host: 'localhost',
+    routes: {
+      cors: {
+        origin: ['*']
+      }
+    }
   });
 
   server.route({
@@ -21,13 +18,13 @@ const init = async () => {
     path: '/',
     handler: () => {
       return { message: 'Hello World' };
-    },
+    }
   });
 
   registerWorkoutRoutes(server);
 
   await server.start();
-  console.log(`Server running on ${server.info.uri}`);
+  console.log(`Server running at ${server.info.uri}`);
 };
 
 init();

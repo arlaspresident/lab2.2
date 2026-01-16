@@ -27,19 +27,22 @@ export default function registerWorkoutRoutes(server) {
           error: "Alla fält krävs: name, duration, completed"
         }).code(400);
       }
-
+      const completedValue = completed ? 1 : 0;
       const result = db
         .prepare(
           `INSERT INTO workouts (name, duration, completed)
            VALUES (?, ?, ?)`
         )
-        .run(name, duration, completed);
+        .run(name, duration, completedValue);
 
-      return h.response({ id: result.lastInsertRowid }).code(201);
+      const newWorkout = db
+        .prepare("SELECT id, name, duration, completed FROM workouts WHERE id = ?")
+        .get(result.lastInsertRowid);
+      return h.response(newWorkout).code(201);
     },
   });
 
-    //GET hämta ett specifikt pass via id
+  //GET hämta ett specifikt pass via id
   server.route({
     method: "GET",
     path: "/workouts/{id}",
@@ -58,7 +61,7 @@ export default function registerWorkoutRoutes(server) {
     },
   });
 
-    //PUT uppdatera ett pass
+  //PUT uppdatera ett pass
   server.route({
     method: "PUT",
     path: "/workouts/{id}",
@@ -80,36 +83,36 @@ export default function registerWorkoutRoutes(server) {
       if (!existing) {
         return h.response({ error: "Passet finns inte" }).code(404);
       }
-
+      const completedValue = completed ? 1 : 0;
       db.prepare(
         `UPDATE workouts 
-         SET name = ?, duration = ?, completed = ?
-         WHERE id = ?`
-      ).run(name, duration, completed, id);
+   SET name = ?, duration = ?, completed = ?
+   WHERE id = ?`
+      ).run(name, duration, completedValue, id);
 
       return h.response({ message: "Uppdaterat" }).code(200);
     },
   });
 
   //DELETE radera ett pass
-server.route({
-  method: "DELETE",
-  path: "/workouts/{id}",
-  handler: (request, h) => {
-    const id = request.params.id;
+  server.route({
+    method: "DELETE",
+    path: "/workouts/{id}",
+    handler: (request, h) => {
+      const id = request.params.id;
 
-    const existing = db
-      .prepare("SELECT id FROM workouts WHERE id = ?")
-      .get(id);
+      const existing = db
+        .prepare("SELECT id FROM workouts WHERE id = ?")
+        .get(id);
 
-    if (!existing) {
-      return h.response({ error: "Passet finns inte" }).code(404);
-    }
+      if (!existing) {
+        return h.response({ error: "Passet finns inte" }).code(404);
+      }
 
-    db.prepare("DELETE FROM workouts WHERE id = ?").run(id);
+      db.prepare("DELETE FROM workouts WHERE id = ?").run(id);
 
-    return h.response({ message: "Raderat" }).code(200);
-  },
-});
+      return h.response({ message: "Raderat" }).code(200);
+    },
+  });
 
 }
